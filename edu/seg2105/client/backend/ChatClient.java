@@ -27,7 +27,7 @@ public class ChatClient extends AbstractClient
    * the display method in the client.
    */
   ChatIF clientUI; 
-
+  boolean logedin = true;
   
   //Constructors ****************************************************
   
@@ -59,7 +59,6 @@ public class ChatClient extends AbstractClient
   {
     clientUI.display(msg.toString());
     
-    
   }
 
   /**
@@ -69,17 +68,164 @@ public class ChatClient extends AbstractClient
    */
   public void handleMessageFromClientUI(String message)
   {
-    try
+
+	 
+	try
     {
+		  String cmdMsg = message.trim();
+		  if(cmdMsg.length() >= 0) {
+			  if (cmdMsg.charAt(0) == '#') { //its a command #
+				  int msgIndex = 0;
+				  for(;msgIndex < cmdMsg.length(); msgIndex++) {
+					  if(cmdMsg.charAt(msgIndex) == ' ') {
+						  break;
+					  }
+				  }
+				  handleClientUICommand(cmdMsg.substring(0, msgIndex), cmdMsg.substring(msgIndex).trim());
+			  }
+		  }
+		  
       sendToServer(message);
-    }
+    }    
     catch(IOException e)
     {
-      clientUI.display
-        ("Could not send message to server.  Terminating client.");
-      quit();
+    	if(logedin) {
+    	      clientUI.display("Could not send message to server, terminating");
+    	      quit();    		
+    	}	
     }
   }
+  
+  
+  /**
+   * Excise 2
+   */
+  public void handleClientUICommand(String command, String parameter) {
+	  switch (command) {
+	  	case "#quit":
+	  		try
+	  		{
+		  		closeConnection();
+		  		System.exit(0);
+	  		}
+	  		catch(Exception e) {
+	  			System.exit(0);
+	  		}
+	  		break;
+	  	case "#logoff":
+	  	    if (!isConnected()) {
+	  	        System.out.println("Already disconnected.");
+	  	        break;
+	  	    }
+	  	    
+	  	    try {
+	  	        logedin = false;
+	  	        closeConnection();
+	  	    } catch (Exception e) {
+	  	        System.out.println("ERROR: close connection failed");
+	  	    }
+	  	    break;
+	  	case "#sethost":
+	  		try
+	  		{
+	  			if(isConnected()) {
+	  				System.out.println("ERROR: Client is connected to server");
+	  			}
+	  			else {
+	  				setHost(parameter);
+	  			}
+	  		}
+	  		catch(Exception e) {
+  				System.out.println("ERROR: Invalid Parameter");
+	  		}
+	  		break;
+	  	case "#setport":
+	  		try
+	  		{
+	  			if(isConnected()) {
+	  				System.out.println("ERROR: Client is connected to server");
+	  			}
+	  			else {
+	  				setPort(Integer.parseInt(parameter));
+	  			}
+		  		break;			  			
+	  		}
+	  		catch(Exception e) {
+  				System.out.println("ERROR: Invalid Parameter");
+	  		}
+	  		break;
+	  	case "#login":
+	  		try
+	  		{
+	  			logedin = true;
+	  			if(isConnected()) {
+	  				System.out.println("ERROR: Client is already connected to server");
+	  			}
+	  			else {
+	  				openConnection();
+	  				System.out.println("Logged in to server at " + getHost() + ":" + getPort());
+	  			}
+	  		}
+	  		catch(Exception e) {
+  				System.out.println("ERROR: login failed");
+	  		}
+	  		break;
+	  	case "#gethost":
+	  		try {
+		  		System.out.println("Current Host: " + getHost());
+	  		}
+	  		catch(Exception e) {
+  				System.out.println("ERROR: Get Host Failed");
+	  		}
+	  		break;
+	  	case "#getport":
+	  		try {
+		  		System.out.println("Current Port: " + getPort());
+	  		}
+	  		catch(Exception e) {
+  				System.out.println("ERROR: Get Port Failed");
+	  		}
+	  		break;
+	  }
+  }
+  
+  /**
+   * Excise 1
+   *  
+   */
+  @Override
+  public void connectionClosed() {
+	  clientUI.display("Closed Connection With Server");
+	    if (logedin) {
+	        clientUI.display("Server has shut down, terminating client.");
+	        System.exit(0);
+	    } else {
+	        clientUI.display("Logged off from server.");
+	        logedin = false; // reset flag
+	    }
+  }
+  
+  /**
+   * Excise 1
+   *  
+   */
+  @Override
+  public void connectionException(Exception exception) {
+	  clientUI.display("Server has shut down, terminating clientd");
+	  //System.exit(0);
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   /**
    * This method terminates the client.
@@ -95,3 +241,5 @@ public class ChatClient extends AbstractClient
   }
 }
 //End of ChatClient class
+
+

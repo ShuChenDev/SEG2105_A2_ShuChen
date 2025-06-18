@@ -73,6 +73,31 @@ public class EchoServer extends AbstractServer
   }
   
   
+  /**
+   * Excise 1
+   */
+  protected void clientConnected(ConnectionToClient client) {
+	    System.out.println(client.toString() + " has connected");
+  }
+
+  
+  /**
+   * Excise 1
+   */
+  @Override
+  protected void clientDisconnected(ConnectionToClient client) {
+	    System.out.println(client.toString() + " has disconnected");
+  }
+  
+  /**
+   * Excise 1
+   */
+  @Override
+  synchronized protected void clientException(ConnectionToClient client, Throwable exception) {
+	    System.out.println(client.toString() + " has disconnected");
+  }
+  
+
   //Class methods ***************************************************
   
   /**
